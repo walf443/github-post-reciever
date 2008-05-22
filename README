@@ -7,6 +7,8 @@ GitHub's JSON-RPC Reciever.
 
   and set your project's push URL to Post-Recieve-URL: http://yourhost/post?method=#{method_name}
 
+  worker/irc's commit ping bot sample worked on #github-post-reciever@irc.freenode.net.
+
 == Install
 It depend on the following gem. please install these before use this.
 
