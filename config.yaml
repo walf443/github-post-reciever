@@ -1,0 +1,14 @@
+---
+workers:
+  -
+    type: IRC
+    uri : 'druby://localhost:12345'
+    config:
+      host: irc.freenode.net
+      port: 6667
+      nick: walf443cbot
+      user: walf443cbot
+      real: "walf443's github commitbot"
+  - 
+    type: Simple
+    uri : 'druby://localhost:12346'
