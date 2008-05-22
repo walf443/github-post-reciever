@@ -1,5 +1,6 @@
 #!/usr/bin/ruby
 
+require 'rubygems'
 require 'drb/drb'
 require 'yaml'
 require 'thread'
