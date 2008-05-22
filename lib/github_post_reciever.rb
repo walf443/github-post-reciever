@@ -20,8 +20,10 @@ class GitHubPostReciever
         return bad_request unless ( @req.params['payload'] && @req.params['method'] )
         @res.status = 200
         json = JSON.parse(@req.params['payload'])
-        @workers.each do |worker|
-          worker.run(@req.params['method'], json)
+        Thread.new do
+          @workers.each do |worker|
+            worker.run(@req.params['method'], json)
+          end
         end
         @res.write('recieved successfully')
         return @res.finish
