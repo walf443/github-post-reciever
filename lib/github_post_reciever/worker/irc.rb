@@ -1,5 +1,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__), 'base'))
 require 'net/irc'
+require 'erb'
 
 class GitHubPostReciever
   module Worker
@@ -21,12 +22,27 @@ class GitHubPostReciever
         end
       end
 
+      class View
+        def initialize template, data
+          @commit = data
+          File.open(template, 'r') do |io|
+            @erb = ERB.new(io.read)
+          end
+        end
+
+        def result
+          @erb.result(binding)
+        end
+      end
+
       def run method, json
-        CommitPingBot.new(@config['host'], @config['port'], {
-          'nick', @config['nick'],
-          'user', @config['user'],
-          'real', @config['real'],
-        }).run("##{method}", json.inspect)
+        json['commits'].each do |sha, commit|
+          CommitPingBot.new(@config['host'], @config['port'], {
+            'nick', @config['nick'],
+            'user', @config['user'],
+            'real', @config['real'],
+          }).run("##{method}", View.new(@config['template'], commit).result)
+        end
       end
     end
   end

@@ -9,6 +9,7 @@ workers:
       nick: walf443cbot
       user: walf443cbot
       real: "walf443's github commitbot"
+      template: template/irc.tmpl
   - 
     type: Simple
     uri : 'druby://localhost:12346'
