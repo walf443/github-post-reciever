@@ -10,7 +10,7 @@ GitHub's JSON-RPC Reciever.
   worker/irc's commit ping bot sample worked on #github-post-reciever@irc.freenode.net.
 
 == Install
-It depend on the following gem. please install these before use this.
+It depend on the following gem. please install these before use it.
 
 - json
 - rack
