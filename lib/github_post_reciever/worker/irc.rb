@@ -35,13 +35,20 @@ class GitHubPostReciever
         end
       end
 
+      has :host, :is => :ro, :kind_of => String, :required => true
+      has :port, :is => :ro, :kind_of => Integer, :default => 6667
+      has :nick, :is => :ro, :kind_of => String, :required => true
+      has :user, :is => :ro, :kind_of => String, :lazy => true, :default => proc {|mine| mine.nick }
+      has :real, :is => :ro, :kind_of => String, :lazy => true, :default => proc {|mine| mine.nick }
+      has :template, :is => :ro, :kind_of => String, :required => true
+
       def run method, json
         json['commits'].each do |sha, commit|
-          CommitPingBot.new(@config['host'], @config['port'], {
-            'nick', @config['nick'],
-            'user', @config['user'],
-            'real', @config['real'],
-          }).run("##{method}", View.new(@config['template'], commit).result)
+          CommitPingBot.new(@host, @port, {
+            'nick' => @nick,
+            'user' => @user,
+            'real' => @real,
+          }).run("##{method}", View.new(@template, commit).result)
         end
       end
     end

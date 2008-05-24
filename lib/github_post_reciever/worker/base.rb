@@ -1,8 +1,9 @@
 require 'drb/drb'
+require 'classx'
 
 class GitHubPostReciever
   module Worker
-    class Base
+    class Base < ClassX
       def initialize config
         @config = config
       end
