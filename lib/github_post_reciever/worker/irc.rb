@@ -43,7 +43,7 @@ class GitHubPostReciever
       has :template, :is => :ro, :kind_of => String, :required => true
 
       def run method, json
-        json['commits'].each do |sha, commit|
+        json['commits'].reverse.each do |sha, commit|
           CommitPingBot.new(@host, @port, {
             'nick' => @nick,
             'user' => @user,
