@@ -10,7 +10,7 @@ config_file = File.join(File.dirname(__FILE__), '../', 'config.yaml')
 # github IP may be wrong. 
 GITHUB_POST_IP = %w( 65.74.175.0/24 )
 require 'rack/auth/ip'
-use Rack::Auth::IP, %w( 127.0.0.1 192.168.0.0/24 ).concat(GITHUB_POST_IP) )
+use Rack::Auth::IP, %w( 127.0.0.1 192.168.0.0/24 ).concat(GITHUB_POST_IP)
 
 run GitHubPostReciever.new(YAML.load_file(config_file))
 
