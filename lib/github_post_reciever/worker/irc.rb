@@ -36,7 +36,7 @@ class GitHubPostReciever
       end
 
       def run method, json
-        json['commits'].each do |sha, commit|
+        json['commits'].reverse.each do |sha, commit|
           CommitPingBot.new(@config['host'], @config['port'], {
             'nick', @config['nick'],
             'user', @config['user'],
