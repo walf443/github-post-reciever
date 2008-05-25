@@ -17,7 +17,7 @@ end
 
 config['workers'].each do |worker|
   Process.fork do
-    DRb.start_service(worker['uri'], GitHubPostReciever::Worker.const_get(worker['type']).new(worker['config']))
+    DRb.start_service(worker['uri'], GitHubPostReciever::Worker.const_get(worker['type']).new(( worker['config'] || {} )))
     sleep
   end
 end
