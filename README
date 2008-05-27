@@ -12,6 +12,7 @@ GitHub's JSON-RPC Reciever.
 == Install
 It depend on the following gem. please install these before use it.
 
+- classx
 - json
 - rack
 - net-irc ( for GitHubPostReciever::Worker::IRC )

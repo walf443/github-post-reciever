@@ -1,11 +1,11 @@
 require 'drb/drb'
+require 'classx'
+require 'classx/validate'
 
 class GitHubPostReciever
   module Worker
-    class Base
-      def initialize config
-        @config = config
-      end
+    class Base < ClassX
+      include Validate
 
       def run method, json
         raise NoImprementedError

@@ -23,8 +23,20 @@ class GitHubPostReciever
       end
 
       class View
+        include ClassX::Validate
+
         def initialize template, data
-          @commit = data
+          # You can user this params in your template.
+          @commit = validate data do
+            has :message
+            has :author, :kind_of => Hash
+            has :url
+            has :timestamp
+          end
+          validate @commit.author do
+            has :email
+            has :name
+          end
           File.open(template, 'r') do |io|
             @erb = ERB.new(io.read)
           end
@@ -35,14 +47,39 @@ class GitHubPostReciever
         end
       end
 
+      # You can set this param to config.
+      has :host,     :kind_of => String
+      has :port,     :kind_of => Integer, :default => 6667
+      has :nick,     :kind_of => String
+      has :user,     :kind_of => String, :lazy => true, :default => proc {|mine| mine.nick }
+      has :real,     :kind_of => String, :lazy => true, :default => proc {|mine| mine.nick }
+      has :template, :kind_of => String
+
+      def after_init
+        @commit_ping_bot = CommitPingBot.new(@host, @port, {
+          'nick' => @nick,
+          'user' => @user,
+          'real' => @real,
+        })
+      end
+
       def run method, json
-        json['commits'].reverse.each do |sha, commit|
-          CommitPingBot.new(@config['host'], @config['port'], {
-            'nick', @config['nick'],
-            'user', @config['user'],
-            'real', @config['real'],
-          }).run("##{method}", View.new(@config['template'], commit).result)
+        validated_json = validate json do
+          has :before
+          has :repository, :kind_of => Hash
+          has :commits, :kind_of => Hash
+          has :after
+          has :ref
         end
+
+        validated_json.commits.keys.reverse.each do |sha|
+          commit = validated_json.commits[sha]
+          @commit_ping_bot.run("##{method}", View.new(@template, commit).result)
+        end
+      rescue ClassX::InvalidAttrArgument => e
+        warn e
+      rescue ClassX::AttrRequiredError => e
+        warn e
       end
     end
   end
