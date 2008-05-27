@@ -24,7 +24,16 @@ class GitHubPostReciever
 
       class View
         def initialize template, data
-          @commit = data
+          @commit = validate data do
+            has :message
+            has :author, :kind_of => Hash
+            has :url
+            has :timestamp
+          end
+          validate @commit.author do
+            has :email
+            has :name
+          end
           File.open(template, 'r') do |io|
             @erb = ERB.new(io.read)
           end
@@ -35,21 +44,29 @@ class GitHubPostReciever
         end
       end
 
-      has :host, :is => :ro, :kind_of => String, :required => true
-      has :port, :is => :ro, :kind_of => Integer, :default => 6667
-      has :nick, :is => :ro, :kind_of => String, :required => true
-      has :user, :is => :ro, :kind_of => String, :lazy => true, :default => proc {|mine| mine.nick }
-      has :real, :is => :ro, :kind_of => String, :lazy => true, :default => proc {|mine| mine.nick }
-      has :template, :is => :ro, :kind_of => String, :required => true
+      has :host,     :kind_of => String
+      has :port,     :kind_of => Integer, :default => 6667
+      has :nick,     :kind_of => String
+      has :user,     :kind_of => String, :lazy => true, :default => proc {|mine| mine.nick }
+      has :real,     :kind_of => String, :lazy => true, :default => proc {|mine| mine.nick }
+      has :template, :kind_of => String
 
       def run method, json
-        json['commits'].reverse.each do |sha, commit|
+        validated_json = validate json do
+          has :commits, :kind_of => Hash
+        end
+
+        validated_json.commits.reverse.each do |sha, commit|
           CommitPingBot.new(@host, @port, {
             'nick' => @nick,
             'user' => @user,
             'real' => @real,
           }).run("##{method}", View.new(@template, commit).result)
         end
+      rescue ClassX::InvalidArgumentError => e
+        warn e
+      rescue ClassX::AttrRequiredError => e
+        warn e
       end
     end
   end
