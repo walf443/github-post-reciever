@@ -22,7 +22,11 @@ class GitHubPostReciever
         json = JSON.parse(@req.params['payload'])
         Thread.new do
           @workers.each do |worker|
-            worker.run(@req.params['method'], json)
+            begin
+              worker.run(@req.params['method'], json)
+            rescue Exception => e
+              warn e
+            end
           end
         end
         @res.write('recieved successfully')
