@@ -51,17 +51,21 @@ class GitHubPostReciever
       has :real,     :kind_of => String, :lazy => true, :default => proc {|mine| mine.nick }
       has :template, :kind_of => String
 
+      def after_init
+        @commit_ping_bot = CommitPingBot.new(@host, @port, {
+          'nick' => @nick,
+          'user' => @user,
+          'real' => @real,
+        })
+      end
+
       def run method, json
         validated_json = validate json do
           has :commits, :kind_of => Hash
         end
 
         validated_json.commits.reverse.each do |sha, commit|
-          CommitPingBot.new(@host, @port, {
-            'nick' => @nick,
-            'user' => @user,
-            'real' => @real,
-          }).run("##{method}", View.new(@template, commit).result)
+          @commit_ping_bot.run("##{method}", View.new(@template, commit).result)
         end
       rescue ClassX::InvalidArgumentError => e
         warn e
