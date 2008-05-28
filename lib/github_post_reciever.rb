@@ -1,12 +1,22 @@
 require 'rack'
 require 'drb/drb'
 require 'json'
+require 'classx'
+require 'classx/validate'
 
 class GitHubPostReciever
+  include ClassX::Validate
+
   def initialize config
-    @config = config
-    raise 'config was wrong' unless @config['workers'] 
-    @workers = @config['workers'].map do |worker|
+    validate config do
+      has :workers, :kind_of => Array
+    end
+    config['workers'].each do |worker|
+      validate worker do
+        has :uri
+      end
+    end
+    @workers = config['workers'].map do |worker|
       DRbObject.new_with_uri(worker['uri'])
     end
   end
@@ -17,7 +27,14 @@ class GitHubPostReciever
 
     if @req.path_info == '/post'
       if @req.post? 
-        return bad_request unless ( @req.params['payload'] && @req.params['method'] )
+        begin
+          validte @req.params do
+            has :payload
+            has :method
+          end
+        rescue ClassX::AttrRequiredError => e
+          return bad_request
+        end
         @res.status = 200
         json = JSON.parse(@req.params['payload'])
         Thread.new do
