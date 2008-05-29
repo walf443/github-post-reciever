@@ -28,7 +28,7 @@ class GitHubPostReciever
     if @req.path_info == '/post'
       if @req.post? 
         begin
-          validte @req.params do
+          validate @req.params do
             has :payload
             has :method
           end

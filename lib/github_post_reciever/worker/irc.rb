@@ -6,19 +6,32 @@ class GitHubPostReciever
   module Worker
     class IRC < Base
       class CommitPingBot < Net::IRC::Client
-        def run channel, message
-          @socket = TCPSocket.open(@host, @port)
-          if @opts.pass
-            post PASS, @opts.pass
-          end
-          post NICK, @opts.nick
-          post USER, @opts.user, '0', '*', @opts.real
-          post JOIN, channel
-          post NOTICE, channel, message
+        attr_accessor :commit_queue
 
-          sleep(3)
-        ensure
-          @socket.close
+        def connect channels
+          channels.each do |channel|
+            init_channel(channel)
+          end
+          start
+        end
+
+        # start session
+        def on_rpl_endofmotd message
+          @channels.keys.each do |channel|
+            post JOIN, channel
+          end
+        end
+
+        def on_message message
+          if @commit_queue.nil?
+            @commit_queue = []
+          elsif @commit_queue.size > 0
+            while ( @commit_queue.size > 0 )
+              post(NOTICE, *@commit_queue.pop)
+            end
+          end
+
+          false
         end
       end
 
@@ -54,13 +67,19 @@ class GitHubPostReciever
       has :user,     :kind_of => String, :lazy => true, :default => proc {|mine| mine.nick }
       has :real,     :kind_of => String, :lazy => true, :default => proc {|mine| mine.nick }
       has :template, :kind_of => String
+      has :channels, :kind_of => Array
+      has :commit_ping_bot, :lazy => true, :default => proc {|mine|
+        CommitPingBot.new(mine.host, mine.port, {
+          'nick' => mine.nick,
+          'user' => mine.user,
+          'real' => mine.nick,
+        })
+      }
 
       def after_init
-        @commit_ping_bot = CommitPingBot.new(@host, @port, {
-          'nick' => @nick,
-          'user' => @user,
-          'real' => @real,
-        })
+        Thread.new do
+          @commit_ping_bot.connect @channels
+        end
       end
 
       def run method, json
@@ -72,9 +91,13 @@ class GitHubPostReciever
           has :ref
         end
 
-        validated_json.commits.keys.reverse.each do |sha|
-          commit = validated_json.commits[sha]
-          @commit_ping_bot.run("##{method}", View.new(@template, commit).result)
+        validated_json.commits.values.sort_by {|c| c['timestamp'] }.each do |commit|
+          if @commit_ping_bot.commit_queue.nil?
+            @commit_ping_bot.commit_queue = []
+          else
+            @commit_ping_bot.commit_queue.unshift(["##{method}", View.new(@template, commit).result])
+          end
+          warn @commit_ping_bot.commit_queue
         end
       rescue ClassX::InvalidAttrArgument => e
         warn e
