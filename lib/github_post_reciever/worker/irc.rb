@@ -1,6 +1,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__), 'base'))
 require 'net/irc'
 require 'erb'
+require 'logger'
 require 'monitor'
 
 class GitHubPostReciever
@@ -72,22 +73,26 @@ class GitHubPostReciever
       has :real,     :kind_of => String, :lazy => true, :default => proc {|mine| mine.nick }
       has :template, :kind_of => String
       has :channels, :kind_of => Array
+      has :log_level, :default => proc { Logger::INFO }
+      has :logger, :kind_of => Logger, :default => proc { Logger.new($stderr) }
       has :commit_ping_bot, :lazy => true, :default => proc {|mine|
         CommitPingBot.new(mine.host, mine.port, {
           'nick' => mine.nick,
           'user' => mine.user,
           'real' => mine.nick,
+          'logger' => mine.logger,
         })
       }
 
       def after_init
+        @logger.level = @log_level
         Thread.new do
           @commit_ping_bot.connect @channels
         end
       end
 
       def run method, json
-        return unless @channels.include ? "##{method}"
+        return unless @channels.include? "##{method}"
 
         validated_json = validate json do
           has :before
@@ -107,9 +112,9 @@ class GitHubPostReciever
           end
         end
       rescue ClassX::InvalidAttrArgument => e
-        warn e
+        @logger.error(e)
       rescue ClassX::AttrRequiredError => e
-        warn e
+        @logger.error(e)
       end
     end
   end
