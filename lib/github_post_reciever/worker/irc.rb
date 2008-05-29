@@ -1,6 +1,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__), 'base'))
 require 'net/irc'
 require 'erb'
+require 'monitor'
 
 class GitHubPostReciever
   module Worker
@@ -25,9 +26,12 @@ class GitHubPostReciever
         def on_message message
           if @commit_queue.nil?
             @commit_queue = []
+            @commit_queue.extend(MonitorMixin)
           elsif @commit_queue.size > 0
             while ( @commit_queue.size > 0 )
-              post(NOTICE, *@commit_queue.pop)
+              @commit_queue.synchronize do
+                post(NOTICE, *@commit_queue.pop)
+              end
             end
           end
 
@@ -83,6 +87,8 @@ class GitHubPostReciever
       end
 
       def run method, json
+        return unless @channels.include ? "##{method}"
+
         validated_json = validate json do
           has :before
           has :repository, :kind_of => Hash
@@ -90,12 +96,14 @@ class GitHubPostReciever
           has :after
           has :ref
         end
-
         validated_json.commits.values.sort_by {|c| c['timestamp'] }.each do |commit|
           if @commit_ping_bot.commit_queue.nil?
             @commit_ping_bot.commit_queue = []
+            @commit_ping_bot.commit_queue.extend(MonitorMixin)
           else
-            @commit_ping_bot.commit_queue.unshift(["##{method}", View.new(@template, commit).result])
+            @commit_ping_bot.commit_queue.synchronize do
+              @commit_ping_bot.commit_queue.unshift(["##{method}", View.new(@template, commit).result])
+            end
           end
         end
       rescue ClassX::InvalidAttrArgument => e
