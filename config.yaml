@@ -15,3 +15,12 @@ workers:
   - 
     type: Simple
     uri : 'druby://localhost:12346'
+  -
+    type: ProxyPoster
+    uri: 'druby://localhost:12347'
+    config:
+      timeout: 60
+      methods:
+        github-post-reciever:
+          - http://you.want.to.post/path/to
+          - http://you.want.to.post/path/to2
