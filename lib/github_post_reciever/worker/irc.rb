@@ -111,9 +111,7 @@ class GitHubPostReciever
             end
           end
         end
-      rescue ClassX::InvalidAttrArgument => e
-        @logger.error(e)
-      rescue ClassX::AttrRequiredError => e
+      rescue ClassX::InstanceExceptoin => e
         @logger.error(e)
       end
     end

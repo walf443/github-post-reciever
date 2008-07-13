@@ -11,8 +11,14 @@ config = YAML.load_file(config_file)
 
 raise 'config was wrong' unless config['workers']
 
-( Pathname.new(__FILE__).parent.parent + 'lib' + 'github_post_reciever/worker').children.grep(/\.rb$/).each do |file|
-  require file.expand_path
+class GitHubPostReciever
+  module Worker
+    ( Pathname.new(__FILE__).parent.parent + 'lib' + 'github_post_reciever/worker').children.grep(/\.rb$/).each do |file|
+      autoload path2class(file), file
+      p file
+    require file.expand_path
+    end
+  end
 end
 
 config['workers'].each do |worker|
