@@ -116,5 +116,6 @@ class GitHubPostReciever
         @logger.error(e)
       end
     end
+    Irc = IRC
   end
 end
