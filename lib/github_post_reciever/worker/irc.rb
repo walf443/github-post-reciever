@@ -110,6 +110,7 @@ class GitHubPostReciever
               @commit_ping_bot.commit_queue.unshift(["##{method}", View.new(@template, commit).result])
             end
           end
+          sleep(3)
         end
       rescue ClassX::InvalidAttrArgument => e
         @logger.error(e)
