@@ -33,7 +33,7 @@ class GitHubPostReciever
             has :method
           end
         rescue ClassX::AttrRequiredError => e
-          return bad_request
+          return forbidden
         end
         @res.status = 200
         json = JSON.parse(@req.params['payload'])
@@ -61,8 +61,8 @@ class GitHubPostReciever
     @res.finish
   end
 
-  def bad_request
-    @res.status = 400
+  def forbidden
+    @res.status = 403
     @res.finish
   end
 
