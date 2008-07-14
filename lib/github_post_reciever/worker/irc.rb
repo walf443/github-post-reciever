@@ -6,7 +6,7 @@ require 'monitor'
 
 class GitHubPostReciever
   module Worker
-    class IRC < Base
+    class Irc < Base
       class CommitPingBot < Net::IRC::Client
         attr_accessor :commit_queue
 
@@ -87,7 +87,7 @@ class GitHubPostReciever
       def after_init
         @logger.level = @log_level
         Thread.new do
-          @commit_ping_bot.connect @channels
+          self.commit_ping_bot.connect @channels
         end
       end
 
@@ -102,20 +102,19 @@ class GitHubPostReciever
           has :ref
         end
         validated_json.commits.values.sort_by {|c| c['timestamp'] }.each do |commit|
-          if @commit_ping_bot.commit_queue.nil?
-            @commit_ping_bot.commit_queue = []
-            @commit_ping_bot.commit_queue.extend(MonitorMixin)
+          if self.commit_ping_bot.commit_queue.nil?
+            self.commit_ping_bot.commit_queue = []
+            self.commit_ping_bot.commit_queue.extend(MonitorMixin)
           else
-            @commit_ping_bot.commit_queue.synchronize do
-              @commit_ping_bot.commit_queue.unshift(["##{method}", View.new(@template, commit).result])
+            self.commit_ping_bot.commit_queue.synchronize do
+              self.commit_ping_bot.commit_queue.unshift(["##{method}", View.new(self.template, commit).result])
             end
           end
           sleep(3)
         end
       rescue ClassX::InstanceException => e
-        @logger.error(e)
+        self.logger.error(e)
       end
     end
-    Irc = IRC
   end
 end
