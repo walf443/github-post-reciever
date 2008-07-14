@@ -112,7 +112,7 @@ class GitHubPostReciever
           end
           sleep(3)
         end
-      rescue ClassX::InstanceExceptoin => e
+      rescue ClassX::InstanceException => e
         @logger.error(e)
       end
     end
