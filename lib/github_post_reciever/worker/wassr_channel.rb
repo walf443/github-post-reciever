@@ -25,10 +25,10 @@ class GitHubPostReciever
         end
 
         validated_json.commits.values.sort_by {|c| c['timestamp'] }.each do |commit|
-          message = View.new(@template, commit).result
+          message = View.new(self.template, commit).result
           Net::HTTP.start('api.wassr.jp') do |http|
             req = Net::HTTP::Post.new('/channel_message/update.json', {
-              'User-Agent' => "GithubPostReciever( #@username )"
+              'User-Agent' => "GithubPostReciever( #{self.account['username'] } )"
             })
             req.basic_auth self.account['username'], self.account['password']
             req.set_form_data({'name_en' => method, 'body' => message})
