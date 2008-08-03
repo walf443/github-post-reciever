@@ -24,7 +24,7 @@ class GitHubPostReciever
           has :ref
         end
 
-        validated_json.commits.each.sort_by {|c| c['timestamp'] }.each do |commit|
+        validated_json.commits.sort_by {|c| c['timestamp'] }.each do |commit|
           message = View.new(self.template, commit).result
           Net::HTTP.start('api.wassr.jp') do |http|
             req = Net::HTTP::Post.new('/channel_message/update.json', {
