@@ -97,11 +97,11 @@ class GitHubPostReciever
         validated_json = validate json do
           has :before
           has :repository, :kind_of => Hash
-          has :commits, :kind_of => Hash
+          has :commits, :kind_of => Array
           has :after
           has :ref
         end
-        validated_json.commits.values.sort_by {|c| c['timestamp'] }.each do |commit|
+        validated_json.commits.each.sort_by {|c| c['timestamp'] }.each do |commit|
           if self.commit_ping_bot.commit_queue.nil?
             self.commit_ping_bot.commit_queue = []
             self.commit_ping_bot.commit_queue.extend(MonitorMixin)

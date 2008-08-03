@@ -19,12 +19,12 @@ class GitHubPostReciever
         validated_json = validate json do
           has :before
           has :repository, :kind_of => Hash
-          has :commits, :kind_of => Hash
+          has :commits, :kind_of => Array
           has :after
           has :ref
         end
 
-        validated_json.commits.values.sort_by {|c| c['timestamp'] }.each do |commit|
+        validated_json.commits.each.sort_by {|c| c['timestamp'] }.each do |commit|
           message = View.new(self.template, commit).result
           Net::HTTP.start('api.wassr.jp') do |http|
             req = Net::HTTP::Post.new('/channel_message/update.json', {
