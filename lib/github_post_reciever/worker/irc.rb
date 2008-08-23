@@ -45,13 +45,13 @@ class GitHubPostReciever
 
         def initialize template, data
           # You can user this params in your template.
-          @commit = validate data do
+          @commit = ClassX::Validate.validate data do
             has :message
             has :author, :kind_of => Hash
             has :url
             has :timestamp
           end
-          validate @commit.author do
+          ClassX::Validate.validate @commit.author do
             has :email
             has :name
           end
@@ -92,7 +92,7 @@ class GitHubPostReciever
       def run method, json
         return unless self.channels.include? "##{method}"
 
-        validated_json = validate json do
+        validated_json = ClassX::Validate.validate json do
           has :before
           has :repository, :kind_of => Hash
           has :commits, :kind_of => Array

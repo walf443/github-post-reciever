@@ -15,8 +15,8 @@ class GitHubPostReciever
       has :channels, :kind_of => Array
 
       def run method, json
-        return unless @channels.include? "##{method}"
-        validated_json = validate json do
+        return unless self.channels.include? "##{method}"
+        validated_json = ClassX::Validate.validate json do
           has :before
           has :repository, :kind_of => Hash
           has :commits, :kind_of => Array
@@ -42,7 +42,6 @@ class GitHubPostReciever
       end
 
       class View
-        include ClassX::Validate
 
         def initialize template, data
           # You can user this params in your template.
@@ -52,7 +51,7 @@ class GitHubPostReciever
             has :url
             has :timestamp
           end
-          validate @commit.author do
+          ClassX::Validate.validate @commit.author do
             has :email
             has :name
           end
