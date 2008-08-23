@@ -4,8 +4,9 @@ require 'classx/validate'
 
 class GitHubPostReciever
   module Worker
-    class Base < ClassX
-      include Validate
+    class Base 
+      include ClassX
+      include ClassX::Validate
 
       def run method, json
         raise NoImprementedError

@@ -1,18 +1,18 @@
 require File.expand_path(File.join(File.dirname(__FILE__), 'base'))
 require 'pit'
-require 'logger'
+require 'classx/role/logger'
 require 'erb'
 require 'net/http'
 
 class GitHubPostReciever
   module Worker
     class WassrChannel < Base
+      include ClassX::Role::Logger
+
       has :domain_for_pit, :kind_of => String
       has :account, :kind_of => Hash, :lazy => true, :default => proc {|mine| Pit.get(mine.domain_for_pit, :require => { 'username' => '', 'password' => '' }) }
       has :template, :kind_of => String
       has :channels, :kind_of => Array
-      has :log_level, :default => proc { Logger::INFO }
-      has :logger, :kind_of => Logger, :default => proc { Logger.new($stderr) }
 
       def run method, json
         return unless @channels.include? "##{method}"
@@ -33,12 +33,12 @@ class GitHubPostReciever
             req.basic_auth self.account['username'], self.account['password']
             req.set_form_data({'name_en' => method, 'body' => message})
             res = http.request req
-            @logger.info("#{res.inspect}: #{method}: #{message}")
+            self.logger.info("#{res.inspect}: #{method}: #{message}")
           end
           sleep(10)
         end
       rescue ClassX::InstanceException => e
-        @logger.error(e)
+        self.logger.error(e)
       end
 
       class View

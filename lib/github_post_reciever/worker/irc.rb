@@ -1,7 +1,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__), 'base'))
 require 'net/irc'
 require 'erb'
-require 'logger'
+require 'classx/role/logger'
 require 'monitor'
 
 class GitHubPostReciever
@@ -66,6 +66,7 @@ class GitHubPostReciever
       end
 
       # You can set this param to config.
+      include ClassX::Role::Logger
       has :host,     :kind_of => String
       has :port,     :kind_of => Integer, :default => 6667
       has :nick,     :kind_of => String
@@ -73,8 +74,6 @@ class GitHubPostReciever
       has :real,     :kind_of => String, :lazy => true, :default => proc {|mine| mine.nick }
       has :template, :kind_of => String
       has :channels, :kind_of => Array
-      has :log_level, :default => proc { Logger::INFO }
-      has :logger, :kind_of => Logger, :default => proc { Logger.new($stderr) }
       has :commit_ping_bot, :lazy => true, :default => proc {|mine|
         CommitPingBot.new(mine.host, mine.port, {
           'nick' => mine.nick,
@@ -85,14 +84,13 @@ class GitHubPostReciever
       }
 
       def after_init
-        @logger.level = @log_level
         Thread.new do
-          self.commit_ping_bot.connect @channels
+          self.commit_ping_bot.connect(self.channels)
         end
       end
 
       def run method, json
-        return unless @channels.include? "##{method}"
+        return unless self.channels.include? "##{method}"
 
         validated_json = validate json do
           has :before
